@@ -1,0 +1,8 @@
+strategy,window,trades,trades_note,win_rate_pct,net_return_pct,profit_factor,max_drawdown_pct,source
+"BULK 1m scalper (Binance prices, BULK fees)","60d, 3 Sep 2026 to 2 Nov 2026",130,,43.8,-12.89,0.68,16.24,docs/BACKTEST.md
+BULK 1m scalper (BULK own 1m candles),60d,160,,46.9,-19.46,0.62,21.02,docs/BACKTEST.md
+"Donchian 1h long-only (n=20, 4h EMA50, 3/3 ATR)",700d from 2 Dec 2024,426,,36.9,27.92,1.17,16.25,docs/BACKTEST.md and docs/BACKTEST_15M.md (docs also round this to +27.9%)
+Donchian 1h same rules on BULK own candles,~55d,23,,30.4,-2.89,0.66,7.8,docs/BACKTEST_15M.md
+"Donchian 15m default (n=20, 1h EMA50, 3/3 ATR, long-only)",700d from 2 Dec 2024,1820,,30.1,-85.77,0.74,85.77,docs/BACKTEST_15M.md (docs also round this to -85.8%)
+hf_maker 1m default (Binance),245d,,60.3 per day,65.3,-91.84,0.76,91.92,docs/BACKTEST_HF.md
+hf_maker 1m default (BULK own candles),60d,,52.5 per day,62.3,-63.94,0.61,64.23,docs/BACKTEST_HF.md

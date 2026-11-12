@@ -1,0 +1,15 @@
+time_ist,ticker_if_known,mint,side,partial_pnl_pct_of_buy_notional,reason
+2026-10-26 19:39:36,EDGE,9J4fGNJVX5W1ioT4jMTGiYH1BVXfNXYGqRHoE8N6pump,buy,,"mcap 139 SOL (+367% from launch), 101B/47S 1m, net +12.1 SOL, 80 new buyers, vol x1.2, holders 158"
+2026-10-26 19:40:19,EDGE,9J4fGNJVX5W1ioT4jMTGiYH1BVXfNXYGqRHoE8N6pump,sell,21.3191,TP1 +58%
+2026-10-26 19:41:35,EDGE,9J4fGNJVX5W1ioT4jMTGiYH1BVXfNXYGqRHoE8N6pump,sell,28.278,TP2 +100%
+2026-10-27 02:31:26,EDGE,9J4fGNJVX5W1ioT4jMTGiYH1BVXfNXYGqRHoE8N6pump,sell,-25.6691,stop loss -84%
+2026-10-27 05:16:57,nocat,2KH3rv7PoDa3nwyzRqd7Tfq365aGRSzb8vEujRWrpump,buy,,"mcap 159 SOL (+448% from launch), 55B/22S 1m, net +13.7 SOL, 45 new buyers, vol x2.4, holders 130"
+2026-10-27 05:22:59,nocat,2KH3rv7PoDa3nwyzRqd7Tfq365aGRSzb8vEujRWrpump,sell,0.493,time stop: no momentum after 6m (+3%)
+2026-10-27 06:42:29,PMKT,6asc1kkii9uzz9KBBXWQdKFoxrGSerWofZ2WxChkpump,buy,,"mcap 69 SOL (+132% from launch), 51B/28S 1m, net +8.8 SOL, 34 new buyers, vol x1.8, holders 78"
+2026-10-27 06:42:52,PMKT,6asc1kkii9uzz9KBBXWQdKFoxrGSerWofZ2WxChkpump,sell,16.1761,TP1 +47%
+2026-10-27 06:43:01,PMKT,6asc1kkii9uzz9KBBXWQdKFoxrGSerWofZ2WxChkpump,sell,2.9975,"trailing stop (+10%, peak +50%)"
+2026-10-27 09:54:17,,5gPHS2DAsH8sQv5SJG7MaAGgjDJpWMPDe6Bj75tJpump,buy,,"mcap 126 SOL (+335% from launch), 32B/15S 1m, net +2.8 SOL, 13 new buyers, vol x1.4, holders 133"
+2026-10-27 09:57:18,,5gPHS2DAsH8sQv5SJG7MaAGgjDJpWMPDe6Bj75tJpump,sell,14.4869,TP1 +43%
+2026-10-27 09:58:10,,DDsv2SQxyYS8SdsVWroJjicYPZh9E8GvH3YwPNDPpump,buy,,"mcap 53 SOL (+78% from launch), 40B/25S 1m, net +8.6 SOL, 35 new buyers, vol x38.1, holders 46"
+2026-10-27 09:58:16,,5gPHS2DAsH8sQv5SJG7MaAGgjDJpWMPDe6Bj75tJpump,sell,-7.8193,"trailing stop (-9%, peak +43%)"
+2026-10-27 09:58:40,,DDsv2SQxyYS8SdsVWroJjicYPZh9E8GvH3YwPNDPpump,sell,-28.2175,stop loss -25%

@@ -1,0 +1,7 @@
+# RESEARCH-ONLY (box/laptop). NEVER install on the e2-micro VM - gcp_install.sh only uses requirements.txt.
+# Verified 2026-11-05 on PyPI: official projects, OSV: no known advisories.
+# quantstats 0.0.86  github.com/ranaroussi/quantstats  Apache-2.0  wheel sha256 4cfb157c8228cbb47681d6a81767d465fbc2bdf529643dd7e836479d2165efd6
+# vectorbt   1.2.0   github.com/polakowo/vectorbt     Apache-2.0 + Commons Clause (no reselling)  wheel sha256 0f0bd9a5eaddbf168b8aafb75489e93a07dc2134ed3d0dab52b57cb1252cbe8d
+#   pip install -r requirements-research.txt   (into a separate venv)
+quantstats==0.0.86
+vectorbt==1.2.0

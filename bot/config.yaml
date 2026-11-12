@@ -1,0 +1,210 @@
+# DexBlocker PAPER bot. Default strategy is gmgn_meme (Solana memecoins). BULK futures stay selectable.
+# mode is hard-locked to paper in code. No wallet and no signing. The GMGN credential is an environment variable only (docs/GMGN_MIGRATION.md).
+mode: paper
+defaults_rev: 3                        # bump to push a new repo default (strategy.name) onto an existing live config once
+venue: bulk
+symbols: [BTC, ETH, SOL]               # BULK <SYM>-USD perps; any symbol whose exchangeInfo status != TRADING is skipped automatically
+enabled_symbols: [BTC, ETH, SOL]       # toggle per symbol (Mini App / /set)
+autostart_trading: true
+paper:
+  start_balance: 1000.0                # USD (BULK settles in USD stablecoin)
+data:
+  sources: [bulk, hyperliquid, okx]    # prices/candles: BULK first; others only as price PROXY if BULK is down (exits only, no entries)
+  volume_ref_sources: [okx, bybit, binance, hyperliquid]   # reference volume for the volume filter (BULK 1m volume is tiny/often 0)
+  exchange_info_refresh_sec: 600
+  book_refresh_sec: 5                  # L2 book cache for slippage (symbols with positions / at entry)
+  stale_after_sec: 45                  # no price tick for this long -> stale-data breaker (no new entries)
+  rest_poll_sec: 5                     # REST price poll when the websocket is down
+  funding_refresh_sec: 300
+strategy:
+  name: gmgn_meme                      # paper Solana memecoins. Futures still selectable: hf_maker, donchian_15m, donchian_1h, scalper
+                                       # hf_maker = EXPERIMENT 1m maker scalper (backtest NEGATIVE). donchian_15m backtest NEGATIVE.
+  gmgn:                                # PAPER ONLY. Hard gates reject when a measurement is missing. See futbot/meme_rules.py HONESTY.
+    chain: sol
+    poll_sec: 25
+    price_poll_sec: 5                  # one DexScreener pairs batch for open positions; stays inside the fast budget
+    reentry_cooldown_sec: 21600        # 6h, any full exit of this mint
+    stop_reentry_cooldown_sec: 86400   # 24h after a stop loss
+    max_quote_age_sec: 30              # reject an entry quote older than this
+    max_m5_spike_pct: 25               # reject when the last 5m move is a larger jump than this
+    confirm_gap_sec: 30                # second passing scan must be at least this long after the first
+    discover_limit: 20
+    enrich_per_scan: 8                 # GMGN info/security/traders calls per pass (keeps the 1GB VM and the quota small)
+    rugcheck_per_scan: 5
+    rugcheck: true
+    gates_rev: 2                       # one-time live-config migration marker for the moderate gate numbers
+    nokey_min_buy_sell_ratio: 1.1      # no-key entry: h1 buys/sells. 5m buys may equal sells. GMGN mode still uses min_buy_sell_ratio
+    rollover_5m_pct: -3                # no-key: 5m change below this has rolled over
+    nokey_rugcheck_per_scan: 12        # RugCheck calls per pass in no-key mode (cached per mint)
+    rugcheck_cache_sec: 600            # reuse a successful RugCheck report for this mint
+    rugcheck_fail_cache_sec: 45        # short cache so a blip is not retried on the same pass
+    rugcheck_min_interval_sec: 1.0     # gap between RugCheck calls (free tier)
+    rugcheck_rpm: 50
+    dex_slow_rpm: 50                   # profiles, boosts, and metas are documented at 60/min
+    dex_fast_rpm: 240                  # token lookups are documented at 300/min
+    trending_metas: 2                  # trending-meta pages fetched per no-key scan
+    min_smart_buyers: 2                # distinct smart-money wallets that are buying (GMGN mode)
+    min_momentum_pct: 3                # 1h change, percent points
+    min_momentum_5m_pct: 0
+    max_chase_pct: 100                 # reject when 1h change is already above this
+    min_buy_sell_ratio: 1.2            # GMGN mode. No-key mode uses nokey_min_buy_sell_ratio
+    max_top10_pct: 50
+    max_dev_hold_pct: 10
+    max_dev_rug_pct: 50                # of the creator's listed tokens, share that are not still alive
+    max_reskin: 2
+    max_inner_count: 300
+    max_bundler_pct: 30
+    max_bundler_wallets: 8
+    max_sniper_wallets: 20
+    max_sell_tax_pct: 5
+    min_lp_locked_pct: 80              # OR burn ratio below
+    min_burn_pct: 95
+    min_liquidity_usd: 8000
+    min_volume_usd: 6000
+    min_age_sec: 120                   # 2 minutes
+    max_age_sec: 259200                # 72 hours
+    min_mcap_usd: 8000                 # entry market-cap band
+    max_mcap_usd: 2000000
+    position_size_pct: 1.5             # percent of paper equity spent per entry (clamped 1-2)
+    stop_loss_pct: 10
+    take_profit: [[25, 40], [60, 30], [120, 30]]   # [gain %, sell % of original size]
+    breakeven_after_tp1: true
+    time_stop_min: 25                  # at this age: below the fill exits; above the fill, stop moves to breakeven
+    time_stop_min_gain_pct: 5          # kept for older configs; the 25m rule no longer uses a +5% cutoff
+    max_hold_min: 120
+    max_open_positions: 4
+    daily_loss_cap_pct: 6
+    max_consecutive_losses: 3
+    liquidity_drop_pct: 40             # exit if pool liquidity falls this far from the entry print
+    stale_data_sec: 90                 # pause new entries
+    stale_exit_sec: 180                # force-exit an open paper position
+    stale_haircut_pct: 15             # extra slippage on that forced exit
+    fee_pct_per_side: 0.30             # modeled AMM fee, not a measured chain fee
+    flat_fee_usd: 0.15                 # modeled priority fee / tip per fill
+    slippage_floor_pct: 0.80
+    slippage_impact_k: 1.0             # extra slippage percent ~= k * notional / liquidity * 100
+    slippage_cap_pct: 8
+  hf:                                  # research: bot/research/hf.py LIVE = "mr_maker k=3 s=8 tp=mean H=120 L=60"
+    tf: 1m
+    ema: 60                            # mean = EMA60 of 1m closes
+    band_atr: 3.0                      # maker quotes at EMA60 -/+ 3 x ATR(14, 1m), both sides, re-posted on every 1m close
+    stop_atr: 8.0                      # taker stop 8 x ATR from the fill
+    max_hold_min: 120                  # taker time exit
+    fill_through_pct: 0.01             # a maker quote/target fills only if the price trades THROUGH it by 0.01% (1 bp)
+    atr_pct_min: 0.03                  # no quotes when 1m ATR% is outside this range
+    atr_pct_max: 1.0
+    history_entry: 600                 # warm-up: 600 x 1m closed klines at start -> quoting from the first 1m close
+    min_bars: 301
+    fallback_history: [okx, hyperliquid, binance, bybit]
+    target_trades_per_day: 50
+    risk:                              # overrides of `risk:` while hf_maker is active (all other breakers unchanged)
+      risk_pct: 0.25                   # 0.25% of equity per trade (stop distance + round-trip taker fees)
+      max_open_positions: 3            # one per coin; notional per trade <= equity * 3x / 3
+      consec_pause_min: 30             # 4 losses in a row -> no new quotes for 30 min (instead of the rest of the day)
+    expect:                            # docs/BACKTEST_HF.md: Binance 1m 2026-03 -> 2026-10 (245 d), live scenario, breakers ON
+      pf: 0.76
+      win_pct: 65.3
+      trades_per_day: 60.3
+      trades_per_week: 422.1
+      avg_r: -0.067
+      max_dd_pct: 91.92
+      net_pct: -91.84
+      days: 245
+      bulk_60d: {pf: 0.61, win_pct: 62.3, trades_per_day: 52.5, net_pct: -63.94, max_dd_pct: 64.23}
+                                       # donchian_1h = EXPERIMENTAL 1h breakout (backtest PF 1.17) | scalper = 5m pullback scalper (no edge)
+  donchian_15m:                        # research: bot/research/donchian15.py "15m n=20 htf=1h k=3 m=3 long-only"
+    tf: 15m
+    trend_tf: 1h
+    channel: 20                        # enter when a 15m close breaks the prior 20 x 15m high (5 hours)
+    trend_ema: 50                      # ... and the last closed 1h close is above 1h EMA50
+    atr_len: 14
+    stop_atr: 3.0                      # initial stop = entry - 3 x ATR(15m)
+    trail_atr: 3.0                     # chandelier: highest high since entry - 3 x ATR, ratcheted on each closed 15m bar
+    long_only: true                    # false = also short 15m breakdowns in a 1h downtrend (backtest: even worse, -94.7% vs -85.8%)
+    history_entry: 600                 # warm-up: 600 x 15m (6.25 days) + 300 x 1h loaded at start -> ready on the first 15m close
+    history_trend: 300
+    fallback_history: [okx, hyperliquid, binance, bybit]
+    expect:                            # backtest expectations for /report (Binance 15m, 2024-12 -> 2026-11, 700 d, BULK fees, 3 symbols)
+      pf: 0.74
+      win_pct: 30.1
+      trades_per_week: 18.2
+      avg_r: -0.108
+      max_dd_pct: 85.77
+      net_pct: -85.77
+      ret_pct_per_90d_range: [-33.1, -5.8]
+  donchian:                            # exact research params: bot/research/swing.py "trend tf=1h n=20 htf=4h k=3.0 m=3.0 long_only"
+    tf: 1h
+    trend_tf: 4h
+    channel: 20                        # enter when a 1h close breaks the prior 20 x 1h high
+    trend_ema: 50                      # ... and the last closed 4h close is above 4h EMA50
+    atr_len: 14
+    stop_atr: 3.0                      # initial stop = entry - 3 x ATR(1h)
+    trail_atr: 3.0                     # chandelier: highest high since entry - 3 x ATR, ratcheted on each closed 1h bar
+    long_only: true
+    history_1h: 600                    # warm-up history loaded at start (BULK klines; reference venue if BULK has too few)
+    history_4h: 300
+    fallback_history: [okx, binance, bybit]
+    expect:                            # backtest expectations for /report (Binance 1h, 2024-12 -> 2026-11, BULK fees, 3 symbols)
+      pf: 1.17
+      win_pct: 36.9
+      trades_per_week: 4.26
+      avg_r: 0.064
+      max_dd_pct: 16.25
+      net_pct: 27.92
+      ret_pct_per_90d_range: [-7.8, 23.6]
+  # ---- scalper (strategy.name: scalper) ----
+  entry_tf: 5m
+  trend_tf: 15m
+  trend_ema_fast: 50
+  trend_ema_slow: 200
+  ema_fast: 9
+  ema_slow: 21
+  use_vwap: true
+  adx_min: 25
+  atr_pct_min: 0.12                    # entry-tf ATR as % of price; below this fees eat the edge
+  atr_pct_max: 1.5
+  setups: [pullback]                   # breakout also available (backtest: worse)
+  pullback_lookback: 3
+  pullback_tol_atr: 0.2
+  rsi_long_min: 45
+  rsi_long_max: 70
+  vol_mult: 1.2
+  vol_avg_bars: 20
+  breakout_bars: 20
+  breakout_vol_mult: 2.0
+  breakout_rsi_max: 78
+  atr_stop_mult: 2.5
+  min_stop_pct: 0.25
+  skip_hours_utc: []                   # e.g. [21, 22, 23] to skip thin hours
+  funding_skip_abs_pct: 0.01           # BULK funding is HOURLY: skip entries if |rate| >= this % and funding is due within funding_skip_min
+  funding_skip_min: 10
+  cooldown_min: 10                     # per symbol after a close
+exits:
+  tp1_r: 1.0
+  tp1_frac: 0.5
+  be_offset_pct: 0.05                  # stop -> entry +0.05% after TP1 (covers fees on the rest)
+  trail_atr_mult: 1.5
+  tp2_r: 0                             # 0 = off (trail the runner)
+  max_hold_min: 60
+  tp1_maker: true                      # TP1 = reduce-only ALO limit (BULK maker fee 0 bps); stops/trail/manual = taker
+risk:
+  risk_pct: 1.0                        # equity risked per trade (stop distance + fees)
+  leverage: 3                          # hard cap 3x; notional per trade <= equity*leverage/max_open_positions
+  max_open_positions: 2
+  daily_loss_cap_pct: 3.0
+  max_consecutive_losses: 4
+  consec_reset_daily: true
+  maint_margin_pct: 0.5                # liquidation estimate only (BULK uses portfolio margin with a live risk engine)
+  min_notional: 5                      # overridden by BULK exchangeInfo minNotional per symbol
+fees:                                  # BULK Growth Mode tier 1 (GET /feeState): taker 3.5 bps, maker 0 bps
+  taker_fee_pct: 0.035
+  maker_fee_pct: 0.0
+  slippage_pct: 0.01                   # floor; live paper fills sweep the real BULK L2 book for the order size
+  slippage_pct_by_symbol: {}
+report:                                # automatic Telegram strategy report (same as /report + open positions)
+  every_days: 2                        # 0 = off; days counted from anchor_date (IST): 2 -> Nov 2, 4, 6 ...
+  at_ist: "20:00"                      # HH:MM Asia/Kolkata
+  anchor_date: "2026-11-02"
+manual:
+  default_risk_pct: 1.0
+  default_stop_atr_mult: 2.5
